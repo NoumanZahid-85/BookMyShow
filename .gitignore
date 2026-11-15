@@ -1,5 +1,6 @@
 # Docs and agent notes stay local
 *.md
+!/README.md
 .cursorrules
 skills-lock.json
 
