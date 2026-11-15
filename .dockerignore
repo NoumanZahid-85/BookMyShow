@@ -1,0 +1,11 @@
+# Backend image context: keep it to the Python app.
+.venv
+**/__pycache__
+.pytest_cache
+.ruff_cache
+.git
+.env
+frontend
+Images
+logs
+docker/grafana

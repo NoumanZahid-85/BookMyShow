@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 5s       # Collect metrics every 5 seconds
+  evaluation_interval: 5s   # Evaluate alerting rules every 5 seconds
+
+scrape_configs:
+  # Scrape the BookMyShow FastAPI backend
+  - job_name: "bookmyshow-api"
+    metrics_path: "/metrics"
+    static_configs:
+      # api:8000 inside Docker, host.docker.internal:8000 when the API runs on your machine.
+      # Only one is up at a time; the other shows as down, which is expected.
+      - targets: ["api:8000", "host.docker.internal:8000"]
+
+  # Self-monitor Prometheus
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
