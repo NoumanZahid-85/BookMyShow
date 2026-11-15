@@ -1,11 +1,13 @@
 # Whole system (UI, API, nginx, Mongo, Redis, Prometheus, Grafana, sample data):
-#   docker compose up -d --build
+#   docker compose up -d            # pulls the prebuilt images from Docker Hub
+#   docker compose up -d --build    # builds them from this source instead
 # Infra only, with the API and UI running on your machine (local dev):
 #   BACKEND_HOST=host.docker.internal:8000 docker compose up -d mongodb redis nginx prometheus grafana
 # Optional extras: docker compose --profile search --profile messaging up -d
 
 services:
   api:
+    image: ${API_IMAGE:-noumandockeruser65/bookmyshow-api:latest}
     build:
       context: .
       dockerfile: docker/Dockerfile
@@ -24,6 +26,7 @@ services:
 
   # One-off: fills an empty database with cities, cinemas, shows and sample bookings, then exits.
   seed:
+    image: ${API_IMAGE:-noumandockeruser65/bookmyshow-api:latest}
     build:
       context: .
       dockerfile: docker/Dockerfile
@@ -36,6 +39,7 @@ services:
     restart: "no"
 
   web:
+    image: ${WEB_IMAGE:-noumandockeruser65/bookmyshow-web:latest}
     build:
       context: ./frontend
       args:
