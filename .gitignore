@@ -1,0 +1,24 @@
+# Docs and agent notes stay local
+*.md
+.cursorrules
+skills-lock.json
+
+# All dot-folders (agents, CI, guardrails, venv, caches, build output)
+.*/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+
+# Node / Next.js
+node_modules/
+*.tsbuildinfo
+
+# Logs
+logs/*
+!logs/.gitkeep
