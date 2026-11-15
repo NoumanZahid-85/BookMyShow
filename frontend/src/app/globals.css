@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Single source of color. Values are RGB channels so Tailwind opacity modifiers work. */
+:root {
+  --bg: 12 12 14;
+  --surface: 21 21 24;
+  --surface-2: 30 30 35;
+  --border: 38 38 43;
+  --fg: 237 237 239;
+  --fg-muted: 139 139 148;
+  --accent: 229 72 77;
+  --success: 48 164 108;
+  --warning: 255 178 36;
+  --danger: 229 72 77;
+  /* Neutral data color for charts. Not red, so numbers never read as "bad". Validated on --surface. */
+  --chart: 91 140 255;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  background-color: rgb(var(--bg));
+  color: rgb(var(--fg));
+}
+
+::selection {
+  background: rgb(var(--accent) / 0.35);
+}
+
+@layer components {
+  .page {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+  }
+  .eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-wider text-fg-muted;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
