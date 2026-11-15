@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="570" viewBox="0 0 960 570" font-family="'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>BookMyShow architecture: browser, Next.js UI, nginx gateway, FastAPI, MongoDB, Redis, Prometheus and Grafana</title>
+  <defs>
+    <marker id="grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#8b95a7"/></marker>
+    <marker id="blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#38bdf8"/></marker>
+    <marker id="amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#fbbf24"/></marker>
+    <marker id="green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#34d399"/></marker>
+  </defs>
+
+  <rect width="960" height="570" rx="20" fill="#0d1117"/>
+  <text x="30" y="50" fill="#e6edf3" font-size="22" font-weight="700">How a click travels</text>
+  <text x="30" y="76" fill="#8b95a7" font-size="14">Every box is a Docker container. One command starts them all.</text>
+
+  <!-- WebSocket path, browser straight to the gateway -->
+  <path d="M105 135 C105 88, 560 88, 560 133" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#blue)"/>
+  <text x="332" y="126" fill="#38bdf8" font-size="12" text-anchor="middle">live seat updates (WebSocket)</text>
+
+  <!-- Row 1 -->
+  <g>
+    <rect x="30" y="135" width="150" height="150" rx="14" fill="#161b22" stroke="#8b95a7" stroke-width="1.5"/>
+    <text x="48" y="163" fill="#8b95a7" font-size="11" font-weight="700" letter-spacing="1.5">START HERE</text>
+    <text x="48" y="193" fill="#e6edf3" font-size="18" font-weight="700">You</text>
+    <text x="48" y="221" fill="#9aa4b2" font-size="13">customer or staff</text>
+    <text x="48" y="241" fill="#9aa4b2" font-size="13">on a laptop</text>
+    <text x="48" y="261" fill="#9aa4b2" font-size="13">or a phone</text>
+  </g>
+  <g>
+    <rect x="230" y="135" width="190" height="150" rx="14" fill="#161b22" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="248" y="163" fill="#38bdf8" font-size="11" font-weight="700" letter-spacing="1.5">EDGE</text>
+    <text x="248" y="193" fill="#e6edf3" font-size="18" font-weight="700">Next.js UI <tspan fill="#8b95a7" font-size="13" font-weight="400">:3001</tspan></text>
+    <text x="248" y="221" fill="#9aa4b2" font-size="13">home, showtimes,</text>
+    <text x="248" y="241" fill="#9aa4b2" font-size="13">seat map, tickets,</text>
+    <text x="248" y="261" fill="#9aa4b2" font-size="13">admin, gate scanner</text>
+  </g>
+  <g>
+    <rect x="465" y="135" width="190" height="150" rx="14" fill="#161b22" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="483" y="163" fill="#38bdf8" font-size="11" font-weight="700" letter-spacing="1.5">EDGE</text>
+    <text x="483" y="193" fill="#e6edf3" font-size="18" font-weight="700">nginx <tspan fill="#8b95a7" font-size="13" font-weight="400">:8080</tspan></text>
+    <text x="483" y="221" fill="#9aa4b2" font-size="13">50 requests/s per IP</text>
+    <text x="483" y="241" fill="#9aa4b2" font-size="13">catalog cache, gzip</text>
+    <text x="483" y="261" fill="#9aa4b2" font-size="13">WebSocket upgrade</text>
+  </g>
+  <g>
+    <rect x="700" y="135" width="230" height="150" rx="14" fill="#161b22" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="718" y="163" fill="#a78bfa" font-size="11" font-weight="700" letter-spacing="1.5">BACKEND</text>
+    <text x="718" y="193" fill="#e6edf3" font-size="18" font-weight="700">FastAPI <tspan fill="#8b95a7" font-size="13" font-weight="400">:8000</tspan></text>
+    <g font-size="12" fill="#e6edf3">
+      <rect x="718" y="210" width="50" height="24" rx="12" fill="#2a2343"/><text x="743" y="226" text-anchor="middle">auth</text>
+      <rect x="774" y="210" width="64" height="24" rx="12" fill="#2a2343"/><text x="806" y="226" text-anchor="middle">catalog</text>
+      <rect x="844" y="210" width="68" height="24" rx="12" fill="#2a2343"/><text x="878" y="226" text-anchor="middle">booking</text>
+      <rect x="718" y="242" width="72" height="24" rx="12" fill="#2a2343"/><text x="754" y="258" text-anchor="middle">payment</text>
+      <rect x="796" y="242" width="58" height="24" rx="12" fill="#2a2343"/><text x="825" y="258" text-anchor="middle">ticket</text>
+    </g>
+  </g>
+
+  <!-- Row 1 arrows -->
+  <line x1="180" y1="210" x2="227" y2="210" stroke="#8b95a7" stroke-width="2" marker-end="url(#grey)"/>
+  <text x="204" y="201" fill="#8b95a7" font-size="11" text-anchor="middle">pages</text>
+  <line x1="420" y1="210" x2="462" y2="210" stroke="#8b95a7" stroke-width="2" marker-end="url(#grey)"/>
+  <text x="442" y="201" fill="#8b95a7" font-size="11" text-anchor="middle">/api</text>
+  <line x1="655" y1="210" x2="697" y2="210" stroke="#8b95a7" stroke-width="2" marker-end="url(#grey)"/>
+  <text x="677" y="201" fill="#8b95a7" font-size="11" text-anchor="middle">proxy</text>
+
+  <!-- Row 2 -->
+  <g>
+    <rect x="30" y="375" width="150" height="130" rx="14" fill="#161b22" stroke="#30363d" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="48" y="403" fill="#8b95a7" font-size="11" font-weight="700" letter-spacing="1.5">ONE COMMAND</text>
+    <rect x="44" y="420" width="122" height="54" rx="8" fill="#0d1117"/>
+    <text x="54" y="442" fill="#7ee787" font-size="13" font-family="Consolas, Menlo, monospace">docker compose</text>
+    <text x="54" y="462" fill="#7ee787" font-size="13" font-family="Consolas, Menlo, monospace">up -d</text>
+  </g>
+  <g>
+    <rect x="230" y="375" width="190" height="130" rx="14" fill="#161b22" stroke="#fbbf24" stroke-width="1.5"/>
+    <text x="248" y="403" fill="#fbbf24" font-size="11" font-weight="700" letter-spacing="1.5">MONITORING</text>
+    <text x="248" y="433" fill="#e6edf3" font-size="18" font-weight="700">Grafana <tspan fill="#8b95a7" font-size="13" font-weight="400">:3000</tspan></text>
+    <text x="248" y="461" fill="#9aa4b2" font-size="13">live dashboard:</text>
+    <text x="248" y="481" fill="#9aa4b2" font-size="13">seat wins vs conflicts</text>
+  </g>
+  <g>
+    <rect x="465" y="375" width="190" height="130" rx="14" fill="#161b22" stroke="#fbbf24" stroke-width="1.5"/>
+    <text x="483" y="403" fill="#fbbf24" font-size="11" font-weight="700" letter-spacing="1.5">MONITORING</text>
+    <text x="483" y="433" fill="#e6edf3" font-size="18" font-weight="700">Prometheus <tspan fill="#8b95a7" font-size="13" font-weight="400">:9090</tspan></text>
+    <text x="483" y="461" fill="#9aa4b2" font-size="13">reads /metrics</text>
+    <text x="483" y="481" fill="#9aa4b2" font-size="13">every 5 seconds</text>
+  </g>
+  <g>
+    <rect x="700" y="375" width="110" height="130" rx="14" fill="#161b22" stroke="#34d399" stroke-width="1.5"/>
+    <text x="716" y="403" fill="#34d399" font-size="11" font-weight="700" letter-spacing="1.5">DATA</text>
+    <text x="716" y="431" fill="#e6edf3" font-size="16" font-weight="700">MongoDB</text>
+    <text x="716" y="457" fill="#9aa4b2" font-size="12">shows, bookings,</text>
+    <text x="716" y="475" fill="#9aa4b2" font-size="12">payments,</text>
+    <text x="716" y="493" fill="#9aa4b2" font-size="12">tickets</text>
+  </g>
+  <g>
+    <rect x="820" y="375" width="110" height="130" rx="14" fill="#161b22" stroke="#34d399" stroke-width="1.5"/>
+    <text x="836" y="403" fill="#34d399" font-size="11" font-weight="700" letter-spacing="1.5">DATA</text>
+    <text x="836" y="431" fill="#e6edf3" font-size="16" font-weight="700">Redis</text>
+    <text x="836" y="457" fill="#9aa4b2" font-size="12">seat locks</text>
+    <text x="836" y="475" fill="#9aa4b2" font-size="12">(Lua, 10 min),</text>
+    <text x="836" y="493" fill="#9aa4b2" font-size="12">catalog cache</text>
+  </g>
+
+  <!-- Row 2 arrows -->
+  <line x1="755" y1="285" x2="755" y2="372" stroke="#34d399" stroke-width="2" marker-end="url(#green)"/>
+  <line x1="875" y1="285" x2="875" y2="372" stroke="#34d399" stroke-width="2" marker-end="url(#green)"/>
+  <line x1="655" y1="395" x2="712" y2="289" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#amber)"/>
+  <line x1="420" y1="440" x2="462" y2="440" stroke="#fbbf24" stroke-width="2" marker-end="url(#amber)"/>
+
+  <!-- Legend -->
+  <g font-size="12" fill="#9aa4b2">
+    <circle cx="36" cy="540" r="5" fill="#38bdf8"/><text x="48" y="544">Edge</text>
+    <circle cx="106" cy="540" r="5" fill="#a78bfa"/><text x="118" y="544">Backend</text>
+    <circle cx="196" cy="540" r="5" fill="#34d399"/><text x="208" y="544">Data</text>
+    <circle cx="262" cy="540" r="5" fill="#fbbf24"/><text x="274" y="544">Monitoring</text>
+    <line x1="370" y1="540" x2="400" y2="540" stroke="#9aa4b2" stroke-width="2" stroke-dasharray="6 5"/><text x="408" y="544">background or real-time traffic</text>
+  </g>
+</svg>
