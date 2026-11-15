@@ -1,124 +1,196 @@
-# BookMyShow Clone
+<div align="center">
 
-A movie ticket booking system built to survive the rush: **many people clicking the same seat at the same moment, and nobody gets double-booked.**
+# 🎬 BookMyShow Clone
 
-Full stack: Next.js UI, FastAPI backend, atomic seat locks in Redis, live seat updates over WebSockets, signed QR tickets, and a staff gate scanner. It runs with one command and has a live Grafana dashboard.
+### 50 people tap the same seat at the same millisecond. Exactly one gets it.
+
+A full-stack movie ticket booking system built for the opening-night rush:
+atomic seat locks, live seat maps, signed QR tickets and a staff gate scanner.
+
+![Next.js](https://img.shields.io/badge/Next.js_15-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
+
+[**Run it in 2 minutes**](#-run-it-in-2-minutes) · [How it works](#-how-it-works) · [Screenshots](#-screenshots) · [Load tests](#-load-and-concurrency-tests)
 
 ![Home page](Images/readme/01-home-hero.png)
 
+</div>
+
 ---
 
-## Results at a glance
+## 🏆 Results at a glance
 
-| What | Result |
+| | Result |
 | :--- | :--- |
-| Double bookings | **0**. 50 requests hit the same seat at the same millisecond: exactly 1 wins, 49 get `409 Conflict` |
-| Load test (1,000 users) | **97 ms** median, **423 req/s**, **99.994%** success (3 failures in 49,013 requests) |
-| Speed-up from tuning | **14x** lower median latency than the baseline |
-| Automated tests | **28** backend tests (concurrency, payments, tickets, auth) plus frontend checks, all passing |
-| End-to-end booking | Sign up, hold, pay, ticket, first gate scan allowed, second scan denied: passing |
-| Startup | `docker compose up`: UI, API, nginx, MongoDB, Redis, Prometheus, Grafana and sample data |
+| 🎯 **Double bookings** | **0**. 50 requests hit one seat at once: 1 wins, 49 get `409 Conflict` |
+| ⚡ **1,000 users** | **97 ms** median, **423 req/s**, **99.994%** success |
+| 🚀 **Tuning** | **14x** faster median than the first version |
+| ✅ **Tests** | **28** backend tests (concurrency, payments, tickets, auth), all passing |
+| 🎟️ **End to end** | Sign up, hold, pay, ticket, scan in, second scan denied: passing |
+| 🐳 **Startup** | One command runs 8 containers with sample data |
 
 ---
 
-## Architecture
+## 🚀 Run it in 2 minutes
 
-```mermaid
-flowchart LR
-    U["Customer / staff<br/>browser or phone"]
+The app is published as ready-made images on Docker Hub, so nothing has to be built.
 
-    subgraph Edge
-        W["Next.js 15 UI<br/>:3001"]
-        N["nginx gateway :8080<br/>rate limit 50 r/s per IP<br/>catalog cache, gzip<br/>WebSocket upgrade"]
-    end
+| Image | Docker Hub |
+| :--- | :--- |
+| 🐍 API (FastAPI) | [`noumandockeruser65/bookmyshow-api`](https://hub.docker.com/r/noumandockeruser65/bookmyshow-api) |
+| ⚛️ Web (Next.js) | [`noumandockeruser65/bookmyshow-web`](https://hub.docker.com/r/noumandockeruser65/bookmyshow-web) |
 
-    subgraph Backend
-        A["FastAPI :8000<br/>auth, catalog, booking,<br/>payment, ticket modules"]
-    end
+**You need:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) running. That's it.
 
-    subgraph Data
-        M[("MongoDB<br/>cities, cinemas, shows,<br/>bookings, payments, tickets")]
-        R[("Redis<br/>seat holds via Lua,<br/>catalog cache")]
-    end
+**1. Get the project** (it holds the config for nginx, Prometheus and Grafana)
 
-    subgraph Monitoring
-        P["Prometheus :9090"]
-        G["Grafana :3000"]
-    end
-
-    U -->|pages| W
-    W -->|/api/v1 proxy| N
-    U -.->|live seats, WebSocket| N
-    N --> A
-    A --> M
-    A --> R
-    P -->|scrapes /metrics| A
-    G --> P
+```bash
+git clone https://github.com/NoumanZahid-85/BookMyShow.git
+cd BookMyShow
 ```
 
-**How a seat stays safe**
+**2. Pull the images**
 
-```mermaid
-sequenceDiagram
-    actor C as Customer
-    participant UI as Next.js
-    participant API as FastAPI
-    participant R as Redis
-    participant DB as MongoDB
-    actor S as Gate staff
-
-    C->>UI: pick seats
-    UI->>API: POST /shows/{id}/hold (Bearer token)
-    API->>R: Lua script: lock all seats or none (10 min TTL)
-    R-->>API: locked, or 409 if any seat is taken
-    API-->>UI: hold id + countdown
-    API--)UI: WebSocket SEAT_HELD to everyone on this show
-    C->>UI: pay
-    UI->>API: create payment session, then pay
-    API->>R: check the hold token is still valid
-    API->>DB: write booking (one per hold)
-    API--)UI: WebSocket SEAT_BOOKED
-    UI->>API: generate ticket
-    API-->>UI: QR signed with HMAC
-    S->>API: POST /tickets/verify (staff token)
-    API-->>S: allowed once, then "already used"
+```bash
+docker compose pull
 ```
+
+**3. Start everything**
+
+```bash
+docker compose up -d
+```
+
+**4. Open the app** at **http://localhost:3001** 🎉
+
+The first start loads sample data (5 cities, 18 cinemas, about 1,100 shows and 5,200 bookings). Give it about 30 seconds.
+
+| Open | Where | Login |
+| :--- | :--- | :--- |
+| 🎬 App | http://localhost:3001 | Sign up as a customer |
+| 🛠️ Staff view | http://localhost:3001/admin | `admin@cinema.com` / `demo-admin-123` |
+| 📘 API docs | http://localhost:8000/docs | |
+| 📊 Grafana | http://localhost:3000 | `admin` / `admin` |
+| 🔥 Prometheus | http://localhost:9090 | |
+
+> [!TIP]
+> **Want a specific version?** Pull it by tag:
+> `docker pull noumandockeruser65/bookmyshow-api:<tag>` and `docker pull noumandockeruser65/bookmyshow-web:<tag>`,
+> then start with `API_IMAGE=noumandockeruser65/bookmyshow-api:<tag> WEB_IMAGE=noumandockeruser65/bookmyshow-web:<tag> docker compose up -d`.
+> Without a tag you get `latest`.
+
+<details>
+<summary><b>🔧 Something not working?</b></summary>
+
+| Problem | Fix |
+| :--- | :--- |
+| Port 3001 is taken | `WEB_PORT=3005 docker compose up -d`, then open http://localhost:3005 |
+| PowerShell says `WEB_PORT=...` is not a command | Run `$env:WEB_PORT="3005"` first, then `docker compose up -d` |
+| The page loads but shows no movies | Sample data is still loading. Wait 30 seconds and refresh |
+| Want to start fresh | `docker compose down -v` (this deletes the sample database) |
+| Stop everything | `docker compose down` |
+
+</details>
+
+<details>
+<summary><b>🛠️ Build the images from source instead</b></summary>
+
+```bash
+docker compose up -d --build
+```
+
+This builds the API and web images on your machine from the code in this repo.
+
+</details>
 
 ---
 
-## Features
+## 🧭 How it works
 
-**Customers**
-- Sign in first, then see only your city's cinemas, showtimes and weekly Top 5
-- Showtimes by day: 7-day strip, calendar, filters for time, price and seats left
-- Seat map with a **best-view heatmap**, "pick the best seats for me", tier prices and seats left
-- Seat preview: see the screen from your seat before paying
-- Live seat updates: seats others hold or buy change color instantly
-- Ticket wallet on the device, QR full screen, save as image
+<div align="center">
 
-**Staff (admin)**
-- Sales dashboard: tickets and money per day, busiest show times, top movies, how full today's shows are
+![Architecture: browser to Next.js UI to nginx to FastAPI, which uses MongoDB and Redis. Prometheus reads FastAPI metrics and Grafana shows them.](Images/readme/architecture.svg)
+
+</div>
+
+**Follow one click, left to right:**
+
+1. **You** open the app. The **Next.js UI** draws the pages.
+2. Every API call goes through **nginx**, which limits each IP to 50 requests a second and caches the movie catalog.
+3. **FastAPI** does the work. It is split into small modules: auth, catalog, booking, payment and ticket.
+4. **Redis** holds seat locks for 10 minutes. **MongoDB** stores shows, bookings, payments and tickets.
+5. Seat changes come back to every open browser over a **WebSocket**, so seat maps update live.
+6. **Prometheus** reads the API's numbers every 5 seconds and **Grafana** turns them into a live dashboard.
+
+### 💺 The life of a seat
+
+<div align="center">
+
+![The life of a seat: pick, hold, broadcast, pay, ticket, gate scan](Images/readme/seat-flow.svg)
+
+</div>
+
+The key trick is step 2. A small **Lua script** runs inside Redis and locks all the seats you picked in **one atomic step**. Redis runs one script at a time, so two people can never both win the same seat, even if they click at the same millisecond.
+
+---
+
+## ✨ Features
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+**🍿 Customers**
+- Your city's cinemas, showtimes and weekly Top 5
+- 7-day showtime strip, calendar and filters
+- Seat map with a **best-view heatmap**
+- "Pick the best seats for me"
+- See the screen from your seat before paying
+- Live seat colors as others book
+- Ticket wallet, full-screen QR, save as image
+
+</td>
+<td width="33%" valign="top">
+
+**🛠️ Staff**
+- Sales dashboard: tickets and money per day
+- Busiest show times and top movies
+- How full today's shows are
 - Add, edit and remove shows
-- Gate scanner: camera or paste. Reused and forged tickets are rejected
+- Gate scanner: camera or paste
+- Reused and forged tickets rejected
 
-**Safety**
-- Seat holds are atomic (all seats or none) and expire after 10 minutes
-- The user always comes from the sign-in token, never from the request body
-- QR tickets are HMAC-signed: changing one seat breaks the signature
+</td>
+<td width="33%" valign="top">
+
+**🔒 Safety**
+- Seat holds: all seats or none
+- Holds expire after 10 minutes
+- The user always comes from the sign-in token, never the request body
+- HMAC-signed QR tickets
 - Each ticket gets in once
+- Rate limiting at the gateway
+
+</td>
+</tr>
+</table>
 
 ---
 
-## Screenshots
+## 📸 Screenshots
 
 | | |
 | :---: | :---: |
-| ![Top 5 and movies](Images/readme/02-top5-and-movies.png) **Top 5 in your city, movie catalog** | ![Showtimes](Images/readme/03-showtimes.png) **Showtimes by day** |
+| ![Top 5 and movies](Images/readme/02-top5-and-movies.png) **Top 5 in your city** | ![Showtimes](Images/readme/03-showtimes.png) **Showtimes by day** |
 | ![Seat map](Images/readme/04-seat-map.png) **Seat map with best-view heatmap** | ![Seats held](Images/readme/05-seats-held.png) **Seats held, 10-minute countdown** |
 | ![Ticket](Images/readme/06-ticket.png) **Signed QR ticket** | ![Gate scan](Images/readme/08-gate-scan.png) **Gate scan: second use denied** |
-| ![Admin sales](Images/readme/07-admin-sales.png) **Admin sales dashboard** | ![Grafana](Images/grafana.png) **Grafana: seat holds, wins vs conflicts** |
+| ![Admin sales](Images/readme/07-admin-sales.png) **Staff sales dashboard** | ![Grafana](Images/grafana.png) **Grafana: seat wins vs conflicts** |
 
-**On a phone**
+**📱 On a phone**
 
 | | | |
 | :---: | :---: | :---: |
@@ -126,54 +198,36 @@ sequenceDiagram
 
 ---
 
-## Load and concurrency tests
+## 📈 Load and concurrency tests
 
-**Load tests (Locust, through nginx)**
+**Load tests** (Locust, through nginx)
 
 | Run | Setup | Requests | Median | Throughput | Result |
 | :--- | :--- | ---: | ---: | ---: | :--- |
 | 1. Baseline | 500 users, 1 worker, no cache | 16,589 | 2,400 ms | 145 req/s | 33% failed (test hit a city that wasn't seeded) |
-| 2. Tuned | 1,000 users, 4 workers, Redis cache, indexes | 49,013 | **97 ms** | **423 req/s** | **99.994% success** |
-| 3. Rate limit | 2,000 users from one IP | 57,071 | n/a | n/a | nginx blocked 90% with `503` by design, API stayed up with 0 crashes |
+| 2. Tuned | 1,000 users, 4 workers, Redis cache, indexes | 49,013 | **97 ms** | **423 req/s** | ✅ **99.994% success** |
+| 3. Rate limit | 2,000 users from one IP | 57,071 | n/a | n/a | 🛡️ nginx blocked 90% by design, 0 API crashes |
 
-**What changed between run 1 and run 2:** Redis cache for cities, cinemas and shows (5 min, cleared on change), compound MongoDB indexes, connection pool of 200, `orjson`, and 4 Uvicorn workers.
+**From 2,400 ms to 97 ms:** Redis cache for cities, cinemas and shows (5 min, cleared on change), compound MongoDB indexes, a connection pool of 200, `orjson`, and 4 Uvicorn workers.
 
-**Concurrency tests (real Redis, `asyncio.Barrier`)**
+**Concurrency tests** (real Redis, everyone released at once with `asyncio.Barrier`)
 
 | Test | Result |
 | :--- | :--- |
-| 50 users, same seat, same instant | 1 hold, 49 conflicts |
-| 10 overlapping multi-seat requests | 0 partial holds |
-| Same hold released twice at once | 1 success, 1 rejected |
-| Same hold confirmed twice at once | exactly 1 booking |
-| Same idempotency key twice | same hold returned |
-| Hold expires (TTL) | seat becomes free again |
-| Confirm after expiry | `410 Gone`, no booking |
-
-Full history and reasoning: [DECISIONS_AND_BENCHMARKS.md](DECISIONS_AND_BENCHMARKS.md).
+| 50 users, same seat, same instant | ✅ 1 hold, 49 conflicts |
+| 10 overlapping multi-seat requests | ✅ 0 partial holds |
+| Same hold released twice at once | ✅ 1 success, 1 rejected |
+| Same hold confirmed twice at once | ✅ exactly 1 booking |
+| Same idempotency key twice | ✅ same hold returned |
+| Hold expires | ✅ seat is free again |
+| Pay after the hold expired | ✅ `410 Gone`, no booking |
 
 ---
 
-## Run it
+## 👩‍💻 Develop locally
 
-**Requires:** Docker Desktop.
-
-```bash
-docker compose up -d --build
-```
-
-| Open | URL |
-| :--- | :--- |
-| App | http://localhost:3001 |
-| API docs (Swagger) | http://localhost:8000/docs |
-| Grafana (admin / admin) | http://localhost:3000 |
-| Prometheus | http://localhost:9090 |
-
-- **Sample data** loads on the first start: 5 cities, 18 cinemas, about 1,100 shows and 5,200 bookings. It is skipped when the database already has data.
-- **Staff login (development only):** `admin@cinema.com` / `demo-admin-123`. Customers sign up in the app.
-- **Port 3001 taken?** Run with `WEB_PORT=3005 docker compose up -d`.
-
-**Local development** (API and UI on your machine, infra in Docker):
+<details>
+<summary><b>Run the API and UI on your machine, with the rest in Docker</b></summary>
 
 ```bash
 # PowerShell: $env:BACKEND_HOST="host.docker.internal:8000"
@@ -191,9 +245,11 @@ cd frontend && npm test          # seat scoring checks
 
 **Camera scanning on a phone:** browsers only allow the camera on HTTPS. For a quick local test on Android Chrome, open `chrome://flags/#unsafely-treat-insecure-origin-as-secure`, add `http://<your-PC-IP>:3001`, and restart Chrome. Pasting the QR text works everywhere.
 
+</details>
+
 ---
 
-## Tech stack
+## 🧰 Tech stack
 
 | Layer | Choice | Why |
 | :--- | :--- | :--- |
@@ -204,11 +260,10 @@ cd frontend && npm test          # seat scoring checks
 | Gateway | nginx | Rate limiting, caching, WebSocket proxy |
 | Monitoring | Prometheus + Grafana | Custom metrics: seat hold wins vs conflicts, latency |
 | Load testing | Locust | Realistic users with think time |
-| CI | GitHub Actions | Lint, 28 tests with real Mongo and Redis, typecheck, build, guardrails |
 
 ---
 
-## Project structure
+## 🗂️ Project structure
 
 ```
 src/
@@ -217,32 +272,27 @@ src/
   bootstrap/     app setup, config, database, Redis, metrics
 frontend/src/
   app/           pages: home, seats, tickets, admin, scanner
-  components/    ui kit, booking, admin, home sections
+  components/    UI kit, booking, admin, home sections
   hooks/ lib/    data hooks, API client, seat scoring
 tests/           pytest suites, Locust load test
 docker/          nginx, Prometheus, Grafana config, API Dockerfile
-scripts/         seed data, traffic generator for Grafana
-.github/         CI workflow
-.guardrails/     pre-commit and pre-push safety hooks
+scripts/         sample data, traffic generator for Grafana
 ```
 
 ---
 
-## Known limits
+## 🚧 Known limits
 
-- **One API instance for live seats:** WebSocket updates are sent from memory, so several API instances would need Redis pub/sub first. Seat locking itself is already safe across instances.
-- **Payments are simulated:** a mock gateway with a Stripe-style webhook path. No real money moves.
+- **Live seats need one API instance.** WebSocket updates are sent from memory, so more instances would need Redis pub/sub first. Seat locking is already safe across instances.
+- **Payments are simulated.** A mock gateway with a Stripe-style webhook. No real money moves.
 - **The seat heatmap is a rule of thumb** (best seats about 60% back, near the center), not real data from each cinema.
-- **Kafka and Elasticsearch** are in `docker-compose.yml` as optional profiles but not used by the code yet.
+- **Kafka and Elasticsearch** are optional profiles in `docker-compose.yml` and are not used by the code yet.
+- **The demo staff login** only exists when `APP_ENV=development`. Never run that mode on a public server.
 
 ---
 
-## Contributing
+<div align="center">
 
-- AI assistants: read [AGENTS.md](AGENTS.md) and [GUARDRAILS.md](GUARDRAILS.md) first.
-- Use feature branches (`feature/...`, `bugfix/...`). Pushing straight to `main` is blocked by a hook.
-- Every pull request runs CI.
+**Built by [Nouman Zahid](https://github.com/NoumanZahid-85)** · If this helped you, a ⭐ helps others find it.
 
-## License
-
-MIT.
+</div>
