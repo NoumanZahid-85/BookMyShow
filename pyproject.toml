@@ -1,0 +1,69 @@
+[project]
+name = "bookmyshow"
+version = "0.1.0"
+description = "High-concurrency movie and event ticket booking platform"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+  # Core
+  "fastapi==0.162.7",
+  "pydantic==2.14.3",
+  "pydantic-settings==2.16.2",
+  "uvicorn[standard]==0.54.0",
+  "orjson>=3.10.0",
+  # Logging
+  "structlog==26.1.0",
+  # Bootstrap - CORS + Security
+  "fastapi-middlewares==0.2.0",
+  # Database & Cache
+  "pymongo==4.20.0",
+  "beanie==1.26.0",
+  "redis==5.3.1",
+  "pyjwt[crypto]==2.15.1",
+  "pwdlib",
+  # Integrations
+  "httpx==0.28.1",
+  "stripe==17.0.0",
+  "twilio",
+  "sendgrid",
+  # Background jobs
+  "arq",
+  # Observability
+  "opentelemetry-api==1.44.0",
+  "opentelemetry-sdk==1.44.0",
+  "opentelemetry-instrumentation-fastapi",
+  "prometheus-client",
+  "qrcode>=8.2",
+]
+
+[dependency-groups]
+dev = [
+  # Lint and Format
+  "ruff==0.16.2",
+  # Type check
+  "pyright==1.1.414",
+  # Testing and Load Testing
+  "pytest==8.4.2",
+  "pytest-asyncio==1.5.0",
+  "pytest-cov==7.0.0",
+  "locust==2.32.8",
+  "pre-commit==4.5.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
